@@ -46,6 +46,10 @@ extension Request {
             
             let JSONResponseSerializer = Request.JSONResponseSerializer(options: .AllowFragments)
             let result = JSONResponseSerializer.serializeResponse(request, response, data, error)
+            
+            guard result.error == nil else {
+                return .Failure(result.error!) // guarding the serialize fail error
+            }
         
             let JSONToMap: AnyObject?
             if let keyPath = keyPath where keyPath.isEmpty == false {
@@ -54,7 +58,10 @@ extension Request {
                 JSONToMap = result.value
             }
             
-            if let parsedObject = Mapper<T>().map(JSONToMap){
+            if let parsedObject = Mapper<T>().map(JSONToMap) {
+                if (JSONToMap != nil && parsedObject.toJSON().isEmpty) {
+                    print("WARNING: There is possiblity of unmatching the model '\(parsedObject)' with JSON data. The form of genuine JSON data is below.\n\(JSONToMap!)")
+                }
                 return .Success(parsedObject)
             }
 
@@ -116,6 +123,10 @@ extension Request {
             let JSONResponseSerializer = Request.JSONResponseSerializer(options: .AllowFragments)
             let result = JSONResponseSerializer.serializeResponse(request, response, data, error)
             
+            guard result.error == nil else {
+                return .Failure(result.error!) // guarding the serialize fail error
+            }
+            
             let JSONToMap: AnyObject?
             if let keyPath = keyPath where keyPath.isEmpty == false {
                 JSONToMap = result.value?.valueForKeyPath(keyPath)
@@ -124,6 +135,9 @@ extension Request {
             }
             
             if let parsedObject = Mapper<T>().mapArray(JSONToMap){
+                if (JSONToMap != nil && parsedObject.toJSON().isEmpty) {
+                    print("WARNING: There is possiblity of unmatching the model '\(parsedObject)' with JSON data. The form of genuine JSON data is below.\n\(JSONToMap!)")
+                }
                 return .Success(parsedObject)
             }
             
