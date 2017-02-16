@@ -61,6 +61,10 @@ extension DataRequest {
             let jsonResponseSerializer = DataRequest.jsonResponseSerializer(options: .allowFragments)
             let result = jsonResponseSerializer.serializeResponse(request, response, data, error)
             
+            guard result.error == nil else {
+                return .failure(result.error!) // guarding the serialize fail error
+            }
+            
             let JSONToMap: Any?
             if let keyPath = keyPath , keyPath.isEmpty == false {
                 JSONToMap = (result.value as AnyObject?)?.value(forKeyPath: keyPath)
@@ -72,6 +76,9 @@ extension DataRequest {
                 _ = Mapper<T>().map(JSONObject: JSONToMap, toObject: object)
                 return .success(object)
             } else if let parsedObject = Mapper<T>(context: context).map(JSONObject: JSONToMap){
+                if (JSONToMap != nil && parsedObject.toJSON().isEmpty) {
+                    print("WARNING: There is possiblity of unmatching the model '\(parsedObject)' with JSON data. The form of genuine JSON data is below.\n\(JSONToMap!)")
+                }
                 return .success(parsedObject)
             }
             
@@ -111,6 +118,10 @@ extension DataRequest {
             let jsonResponseSerializer = DataRequest.jsonResponseSerializer(options: .allowFragments)
             let result = jsonResponseSerializer.serializeResponse(request, response, data, error)
             
+            guard result.error == nil else {
+                return .failure(result.error!) // guarding the serialize fail error
+            }
+            
             let JSONToMap: Any?
             if let keyPath = keyPath, keyPath.isEmpty == false {
                 JSONToMap = (result.value as AnyObject?)?.value(forKeyPath: keyPath)
@@ -119,6 +130,9 @@ extension DataRequest {
             }
             
             if let parsedObject = Mapper<T>(context: context).mapArray(JSONObject: JSONToMap){
+                if (JSONToMap != nil && parsedObject.toJSON().isEmpty) {
+                    print("WARNING: There is possiblity of unmatching the model '\(parsedObject)' with JSON data. The form of genuine JSON data is below.\n\(JSONToMap!)")
+                }
                 return .success(parsedObject)
             }
             
